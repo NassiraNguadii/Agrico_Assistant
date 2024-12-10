@@ -13,7 +13,7 @@ class DiseaseDetectionService:
     def __init__(self):
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         # Load your model
-        self.model = torch.load('path_to_your_model.pt', map_location=self.device)
+        self.model = torch.load('.\models\best_model.pt', map_location=self.device)
         self.model.eval()
         
         # Define image transformations
