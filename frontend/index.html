@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agrico Assistant</title>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Add Google Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .gradient-bg {
+            background: linear-gradient(120deg, #84fab0 0%, #8fd3f4 100%);
+        }
+        .chat-container {
+            background: url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgdmlld0JveD0iMCAwIDIwMCAyMDAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImdyaWQiIHdpZHRoPSIyMCIgaGVpZ2h0PSIyMCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTSAwIDEwIEwgMjAgMTAgTSAxMCAwIEwgMTAgMjAiIGZpbGw9Im5vbmUiIHN0cm9rZT0iI2U1ZTdlYiIgc3Ryb2tlLXdpZHRoPSIxIi8+PC9wYXR0ZXJuPjwvZGVmcz48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSJ1cmwoI2dyaWQpIi8+PC9zdmc+');
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <div id="app">
+        <div class="flex h-screen">
+            <!-- Left Sidebar - Chat -->
+            <div class="w-1/4 flex flex-col border-r border-gray-200 bg-white">
+                <!-- Chat Header -->
+                <div class="p-4 border-b gradient-bg">
+                    <div class="flex items-center gap-3">
+                        <i-lucide-seedling class="w-8 h-8 text-green-800"></i-lucide-seedling>
+                        <h1 class="text-xl font-bold text-green-900">Agrico Assistant</h1>
+                    </div>
+                </div>
+
+                <!-- Chat Messages -->
+                <div class="flex-1 p-4 overflow-y-auto chat-container">
+                    <div class="space-y-4">
+                        <div v-for="(msg, index) in chatMessages" :key="index"
+                            :class="['p-3 rounded-lg shadow-sm', 
+                                msg.type === 'user' ? 'bg-green-500 text-white ml-auto' : 'bg-white mr-auto',
+                                'max-w-[80%]']">
+                            {{ msg.content }}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Chat Input -->
+                <div class="p-4 border-t bg-white">
+                    <div class="flex gap-2">
+                        <input type="text" v-model="newMessage" @keyup.enter="sendMessage"
+                            class="flex-1 p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500" 
+                            placeholder="Ask about plants...">
+                        <button @click="sendMessage" 
+                            class="p-3 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors">
+                            <i-lucide-send class="w-5 h-5"></i-lucide-send>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Content -->
+            <div class="flex-1 overflow-y-auto bg-gray-50">
+                <div class="p-6 space-y-6">
+                    <!-- Dashboard Cards -->
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <!-- Activity Card -->
+                        <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+                            <div class="flex items-center gap-3 mb-4">
+                                <div class="p-2 bg-purple-100 rounded-lg">
+                                    <i-lucide-activity class="w-5 h-5 text-purple-600"></i-lucide-activity>
+                                </div>
+                                <h3 class="font-semibold text-gray-900">Recent Activity</h3>
+                            </div>
+                            <div class="space-y-3">
+                                <div class="flex justify-between items-center">
+                                    <span class="text-sm text-gray-600">Last Analysis</span>
+                                    <span class="text-sm font-medium">{{ lastAnalysis || 'Never' }}</span>
+                                </div>
+                                <div class="flex justify-between items-center">
+                                    <span class="text-sm text-gray-600">Plants Analyzed</span>
+                                    <span class="text-sm font-medium">{{ detectionCount }}</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Health Index Card -->
+                        <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+                            <div class="flex items-center gap-3 mb-4">
+                                <div class="p-2 bg-green-100 rounded-lg">
+                                    <i-lucide-heart-pulse class="w-5 h-5 text-green-600"></i-lucide-heart-pulse>
+                                </div>
+                                <h3 class="font-semibold text-gray-900">Plant Health Index</h3>
+                            </div>
+                            <div class="space-y-3">
+                                <div class="flex justify-between items-center">
+                                    <span class="text-sm text-gray-600">Overall Health</span>
+                                    <span class="text-sm font-medium text-green-600">{{ healthScore }}%</span>
+                                </div>
+                                <div class="w-full bg-gray-200 rounded-full h-2">
+                                    <div class="bg-green-500 h-2 rounded-full" :style="{ width: healthScore + '%' }"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Weather Card -->
+                        <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+                            <div class="flex items-center gap-3 mb-4">
+                                <div class="p-2 bg-blue-100 rounded-lg">
+                                    <i-lucide-cloud class="w-5 h-5 text-blue-600"></i-lucide-cloud>
+                                </div>
+                                <h3 class="font-semibold text-gray-900">Weather Now</h3>
+                            </div>
+                            <div v-if="weather" class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <p class="text-sm text-gray-600">Temperature</p>
+                                    <p class="text-lg font-semibold">{{ weather.main.temp }}°C</p>
+                                </div>
+                                <div>
+                                    <p class="text-sm text-gray-600">Humidity</p>
+                                    <p class="text-lg font-semibold">{{ weather.main.humidity }}%</p>
+                                </div>
+                            </div>
+                            <div v-else class="text-sm text-gray-500">
+                                Weather data unavailable
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Disease Detection Section -->
+                    <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+                        <div class="flex items-center gap-3 mb-6">
+                            <div class="p-2 bg-amber-100 rounded-lg">
+                                <i-lucide-microscope class="w-5 h-5 text-amber-600"></i-lucide-microscope>
+                            </div>
+                            <h2 class="text-xl font-semibold text-gray-900">Plant Disease Detection</h2>
+                        </div>
+
+                        <div class="flex flex-col items-center">
+                            <div class="w-full max-w-2xl mb-6">
+                                <div class="relative">
+                                    <img v-if="selectedImage" :src="selectedImage" alt="Selected plant"
+                                        class="w-full h-64 object-contain rounded-lg border border-gray-200">
+                                    <div v-else class="w-full h-64 bg-gray-100 rounded-lg border border-gray-200 flex items-center justify-center">
+                                        <i-lucide-image class="w-12 h-12 text-gray-400"></i-lucide-image>
+                                    </div>
+                                    <div v-if="modelLoading" 
+                                        class="absolute inset-0 bg-black bg-opacity-50 rounded-lg flex items-center justify-center">
+                                        <div class="text-white flex items-center gap-2">
+                                            <i-lucide-loader class="animate-spin w-6 h-6"></i-lucide-loader>
+                                            <span>Analyzing...</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="flex gap-4 mb-6">
+                                <label class="cursor-pointer inline-flex items-center gap-2 px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors">
+                                    <i-lucide-upload class="w-5 h-5"></i-lucide-upload>
+                                    Upload Image
+                                    <input type="file" @change="handleImageUpload" accept="image/*" class="hidden">
+                                </label>
+                                <button class="inline-flex items-center gap-2 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors">
+                                    <i-lucide-camera class="w-5 h-5"></i-lucide-camera>
+                                    Take Photo
+                                </button>
+                            </div>
+
+                            <div v-if="error" class="text-red-500 mb-4">{{ error }}</div>
+
+                            <div v-if="prediction" class="w-full max-w-2xl p-6 bg-gray-50 rounded-lg border border-gray-200">
+                                <h3 class="text-lg font-semibold mb-4 text-gray-900">Detection Results</h3>
+                                <div class="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <p class="text-sm text-gray-600">Detected Disease</p>
+                                        <p class="font-medium text-gray-900">{{ prediction.class }}</p>
+                                    </div>
+                                    <div>
+                                        <p class="text-sm text-gray-600">Confidence Level</p>
+                                        <p class="font-medium text-gray-900">{{ prediction.confidence }}%</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="services/weatherService.js"></script>
+    <script src="services/geminiService.js"></script>
+    <script src="services/modelService.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
