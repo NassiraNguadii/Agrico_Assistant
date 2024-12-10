@@ -14,7 +14,6 @@ createApp({
             // Dashboard data
             lastAnalysis: null,
             detectionCount: 0,
-            healthScore: 85, // Example default value
             recentActivities: []
         }
     },
@@ -76,7 +75,6 @@ createApp({
                     // Update dashboard data
                     this.lastAnalysis = new Date().toLocaleString();
                     this.detectionCount++;
-                    this.updateHealthScore(result);
                 } catch (error) {
                     console.error('Error processing image:', error);
                     this.error = 'Failed to process image. Please try again.';
@@ -84,13 +82,6 @@ createApp({
                 } finally {
                     this.modelLoading = false;
                 }
-            }
-        },
-        updateHealthScore(prediction) {
-            // Example health score calculation based on prediction confidence
-            if (prediction && prediction.confidence) {
-                // Update health score based on prediction
-                this.healthScore = Math.round((1 - prediction.confidence) * 100);
             }
         }
     }

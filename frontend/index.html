@@ -169,17 +169,11 @@
 
                             <div v-if="error" class="text-red-500 mb-4">{{ error }}</div>
 
-                            <div v-if="prediction" class="w-full max-w-2xl p-6 bg-gray-50 rounded-lg border border-gray-200">
-                                <h3 class="text-lg font-semibold mb-4 text-gray-900">Detection Results</h3>
-                                <div class="grid grid-cols-2 gap-4">
-                                    <div>
-                                        <p class="text-sm text-gray-600">Detected Disease</p>
-                                        <p class="font-medium text-gray-900">{{ prediction.class }}</p>
-                                    </div>
-                                    <div>
-                                        <p class="text-sm text-gray-600">Confidence Level</p>
-                                        <p class="font-medium text-gray-900">{{ prediction.confidence }}%</p>
-                                    </div>
+                            <div v-if="prediction" class="mt-4 p-4 bg-gray-50 rounded-lg w-full max-w-2xl">
+                                <h3 class="font-bold mb-2">Detection Results</h3>
+                                <div>
+                                    <p class="text-sm text-gray-600">Detected Disease</p>
+                                    <p class="font-medium text-gray-900">{{ prediction.class }}</p>
                                 </div>
                             </div>
                         </div>
