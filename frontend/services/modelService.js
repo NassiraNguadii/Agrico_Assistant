@@ -15,10 +15,11 @@ const modelService = {
             }
 
             const result = await response.json();
+            console.log('Disease detection result:', result); // Debug log
             return {
-                class: result.class_name,
-                success: true,
-                image: result.image
+                class_name: result.class_name,
+                image: result.image,
+                success: true
             };
         } catch (error) {
             console.error('Error in disease prediction:', error);

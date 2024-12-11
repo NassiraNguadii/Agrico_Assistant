@@ -22,9 +22,20 @@ createApp({
         lucide.createIcons();
     },
     methods: {
+        cleanupMarkdown(text) {
+            return text
+                .replace(/\*\*(.*?)\*\*/g, '$1')   // Remove bold markers
+                .replace(/^#+\s/gm, '')            // Remove header markers
+                .replace(/```[\s\S]*?```/g, '')    // Remove code blocks
+                .trim();
+        },
+        
+        formatMessage(message) {
+            return this.cleanupMarkdown(message);
+        },
+        
         async getWeatherData() {
             try {
-                // Using a default city instead of geolocation for demo
                 const response = await weatherService.getWeatherByCity('London');
                 this.weather = response;
                 this.error = null;
@@ -43,7 +54,10 @@ createApp({
             
             try {
                 const response = await geminiService.sendMessage(this.newMessage);
-                this.chatMessages.push({ type: 'bot', content: response });
+                this.chatMessages.push({ 
+                    type: 'bot', 
+                    content: this.formatMessage(response) 
+                });
             } catch (error) {
                 console.error('Error sending message:', error);
                 this.chatMessages.push({ 
@@ -67,14 +81,31 @@ createApp({
                         this.selectedImage = reader.result;
                     };
                     reader.readAsDataURL(file);
-
+        
                     // Get prediction
                     const result = await modelService.predictDisease(file);
+                    console.log('Model prediction result:', result);
                     this.prediction = result;
                     
                     // Update dashboard data
                     this.lastAnalysis = new Date().toLocaleString();
                     this.detectionCount++;
+        
+                    // Auto-trigger chatbot analysis
+                    if (this.weather && result.class_name) {
+                        const analysisRequest = `DETECTED_DISEASE:${result.class_name},WEATHER:${JSON.stringify(this.weather)}`;
+                        console.log('Sending to chatbot:', analysisRequest);
+                        
+                        const response = await geminiService.sendMessage(analysisRequest);
+                        console.log('Chatbot response:', response);
+                        
+                        // Add bot response to chat
+                        this.chatMessages.push({
+                            type: 'bot',
+                            content: response
+                        });
+                    }
+        
                 } catch (error) {
                     console.error('Error processing image:', error);
                     this.error = 'Failed to process image. Please try again.';

@@ -36,10 +36,8 @@ const geminiService = {
             {
                 role: "user",
                 parts: [
-                    {text: `You are AGRICO ASSISTANT, an expert agricultural advisor who provides real-time weather-based guidance.
-                    
-IMPORTANT: I will provide you with current weather data in each query. Use this data to provide context-aware advice.
-
+                    {text: `You are AGRICO ASSISTANT, an expert agricultural advisor specializing in:
+    
 CORE CROPS AND THEIR OPTIMAL CONDITIONS:
 
 APPLES:
@@ -79,19 +77,35 @@ POTATOES:
 - Risk conditions: Wet conditions (disease prone)
 
 When responding:
-1. ANALYZE the current weather data I provide
-2. COMPARE it to the crop's optimal conditions
-3. IDENTIFY any risks or opportunities
-4. PROVIDE specific recommendations based on current conditions
-5. INCLUDE preventive measures if conditions are unfavorable
+1. ANALYZE current weather conditions
+2. COMPARE to optimal crop requirements
+3. IDENTIFY risks and opportunities
+4. PROVIDE specific recommendations
+5. INCLUDE preventive measures
 
-Remember: Always use the current weather data I provide to give relevant, timely advice.`}
+Special Instructions:
+1. Always respond in Arabic
+2. For disease detections, analyze both the disease and current weather impact
+3. Provide practical treatment and prevention advice
+4. Consider local weather conditions in recommendations
+
+DISEASES DATABASE:
+- Apple_scab (جرب التفاح)
+- Black_rot (العفن الأسود)
+- Cedar_apple_rust (صدأ التفاح السيدري)
+- Powdery_mildew (البياض الدقيقي)
+- Early_blight (اللفحة المبكرة)
+- Late_blight (اللفحة المتأخرة)
+- Leaf_spot (تبقع الأوراق)
+- Bacterial_spot (التبقع البكتيري)
+- Haunglongbing (اخضرار الحمضيات)
+`}
                 ]
             },
             {
                 role: "model",
                 parts: [
-                    {text: "I understand that I will receive real-time weather data with each query. I will analyze this data against optimal crop conditions to provide specific, weather-aware agricultural advice. Ready to assist with detailed recommendations based on current conditions."}
+                    {text: "أفهم دوري كمساعد زراعي متخصص. سأقدم تحليلاً شاملاً ونصائح عملية باللغة العربية، مع مراعاة ظروف الطقس وحالة المحاصيل."}
                 ]
             }
         ];
@@ -103,15 +117,41 @@ Remember: Always use the current weather data I provide to give relevant, timely
                 await this.initialize();
             }
 
-            // Format the input with weather data
-            const weatherInfo = weatherData ? `
-CURRENT WEATHER CONDITIONS:
-Temperature: ${weatherData.main.temp}°C
-Humidity: ${weatherData.main.humidity}%
-Conditions: ${weatherData.weather[0].main}
-Wind Speed: ${weatherData.wind.speed} m/s
+            // Check if this is a disease detection message
+            if (userInput.startsWith('DETECTED_DISEASE:')) {
+                const [diseasePart, weatherPart] = userInput.split(',WEATHER:');
+                const disease = diseasePart.replace('DETECTED_DISEASE:', '');
+                const weather = JSON.parse(weatherPart);
 
-Based on these current weather conditions, please advise about: ${userInput}` : userInput;
+                const analysisPrompt = `
+تم الكشف عن حالة في النبات. تحليل الوضع كالتالي:
+
+المرض المكتشف: ${disease}
+الظروف الجوية الحالية:
+- درجة الحرارة: ${weather.main.temp}°C
+- الرطوبة: ${weather.main.humidity}%
+- حالة الطقس: ${weather.weather[0].main}
+- سرعة الرياح: ${weather.wind.speed} م/ث
+
+قم بتقديم:
+1. شرح المرض وخطورته
+2. تأثير الظروف الجوية الحالية
+3. خطوات العلاج المناسبة
+4. إجراءات وقائية موصى بها`;
+
+                const result = await this.chat.sendMessage(analysisPrompt);
+                return result.response.text();
+            }
+
+            // Format regular chat messages with weather data if available
+            const weatherInfo = weatherData ? `
+الظروف الجوية الحالية:
+درجة الحرارة: ${weatherData.main.temp}°C
+الرطوبة: ${weatherData.main.humidity}%
+الحالة: ${weatherData.weather[0].main}
+سرعة الرياح: ${weatherData.wind.speed} متر/ثانية
+
+استفسار المستخدم: ${userInput}` : userInput;
 
             const result = await this.chat.sendMessage(weatherInfo);
             return result.response.text();

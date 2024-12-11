@@ -35,13 +35,14 @@
                 </div>
 
                 <!-- Chat Messages -->
+<!-- Chat Messages -->
                 <div class="flex-1 p-4 overflow-y-auto chat-container">
                     <div class="space-y-4">
                         <div v-for="(msg, index) in chatMessages" :key="index"
                             :class="['p-3 rounded-lg shadow-sm', 
                                 msg.type === 'user' ? 'bg-green-500 text-white ml-auto' : 'bg-white mr-auto',
                                 'max-w-[80%]']">
-                            {{ msg.content }}
+                            <div v-html="msg.content.replace(/\n/g, '<br>')"></div>
                         </div>
                     </div>
                 </div>
